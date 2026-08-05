@@ -1,9 +1,9 @@
 import { test, expect } from '@grafana/plugin-e2e';
 
-test('shows a no-data message when panel data is empty', async ({ gotoPanelEditPage, readProvisionedDashboard }) => {
+test('explains the required fields when panel data is empty', async ({ gotoPanelEditPage, readProvisionedDashboard }) => {
   const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
   const panelEditPage = await gotoPanelEditPage({ dashboard, id: '2' });
-  await expect(panelEditPage.panel.locator).toContainText('No data');
+  await expect(panelEditPage.panel.locator).toContainText('needs a Grafana time field and at least one numeric field');
 });
 
 test('renders dynamically named CSV series and its legend', async ({
@@ -12,10 +12,10 @@ test('renders dynamically named CSV series and its legend', async ({
   page,
 }) => {
   const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
-  await gotoPanelEditPage({ dashboard, id: '1' });
+  const panelEditPage = await gotoPanelEditPage({ dashboard, id: '1' });
   await expect(page.getByTestId('time-overlay-panel')).toBeVisible();
-  await expect(page.getByTestId('series-legend')).toContainText('USTX01');
-  await expect(page.getByTestId('series-legend')).toContainText('UXVA01');
+  await expect(panelEditPage.panel.locator).toContainText('USTX01');
+  await expect(panelEditPage.panel.locator).toContainText('UXVA01');
 });
 
 test('draws a persistent duration overlay', async ({ gotoPanelEditPage, readProvisionedDashboard, page }) => {

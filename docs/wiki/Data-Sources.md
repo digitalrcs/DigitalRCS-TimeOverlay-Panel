@@ -15,9 +15,9 @@ The time field can have any name when the datasource correctly marks it as a Gra
 Example wide result:
 
 ```text
-_time                USTX01  UXVA01
-2026-08-01 20:00:00  123456  543222
-2026-08-01 21:00:00  234567  654333
+_time                metric_a  metric_b
+2026-08-01 20:00:00  123456    543222
+2026-08-01 21:00:00  234567    654333
 ```
 
 The panel also accepts multiple independently typed frames, which is common for Prometheus-style and other metric queries. Datasource-provided labels, units, links, metadata, and field configuration are preserved.
@@ -55,4 +55,4 @@ Alias or convert the timestamp column to Grafana type **Time** and measurement c
 
 ## Dynamic field names and colors
 
-No data-center names are hardcoded. New numeric fields returned by a query are discovered automatically. Use Grafana field overrides with **Fields with name** or a regular-expression matcher to assign stable per-series colors, units, decimals, or display names.
+No series names or business domains are hardcoded. New numeric fields returned by a query are discovered automatically. Use Grafana field overrides with **Fields with name** or a regular-expression matcher to assign stable per-series colors, units, decimals, or display names.

@@ -2,14 +2,14 @@ For more information see [Provision dashboards and data sources](https://grafana
 
 # Local CSV sample
 
-The development dashboard provisions **Local Data Centers CSV** from
+The development dashboard provisions a sample CSV datasource from
 `/etc/grafana/provisioning/data/datasource-grafana.csv`. The untouched source
 is retained as `datasource.csv`. Splunk exports use offsets such as `-0400`,
 while the CSV data-source parser expects RFC-3339 offsets such as `-04:00`.
 The Grafana-ready copy changes only that offset format. The query maps `_time`
 to a Grafana Time field and leaves **Ignore unknown** off; the panel then
 detects every remaining numeric column, including dynamically changing data
-center names.
+series names.
 
 Prepare a replacement Splunk export with:
 

@@ -17,9 +17,9 @@ Administrators do not need this source repository, Node.js, npm, or the Grafana 
 3. Verify the downloaded checksum if the release provides one.
 4. Inspect the archive. It must contain a top-level `digitalrcs-timeoverlay-panel` directory with `plugin.json` and `module.js` directly inside it. A production-signed archive also contains `MANIFEST.txt`.
 5. Extract or deploy that top-level directory using the Windows, Linux, Docker, or Kubernetes instructions below.
-6. Because the published package is expected to be unsigned, add `digitalrcs-timeoverlay-panel` to Grafana's unsigned-plugin allowlist using the platform-specific configuration below, then restart Grafana.
+6. If the package contains a valid `MANIFEST.txt`, install it as a signed plugin. Otherwise, add `digitalrcs-timeoverlay-panel` to Grafana's unsigned-plugin allowlist only when the responsible administrators have approved that exception, then restart Grafana.
 
-The release ZIP is the compiled plugin. Keep it intact as the approved deployment artifact and install the same version on every Grafana instance. The normal instructions in this guide assume the package does not contain `MANIFEST.txt` and is loaded through Grafana's explicit unsigned-plugin allowlist.
+The release ZIP is the compiled plugin. Keep it intact as the approved deployment artifact and install the same version on every Grafana instance. A signed package is preferred for controlled production deployment. See the [plugin signing guide](PLUGIN-SIGNING.md) for the complete private and public signing workflows.
 
 ## Allow the unsigned plugin
 
@@ -56,6 +56,8 @@ npm run sign -- --rootUrls https://grafana.example.internal
 For more than one permitted Grafana address, provide a comma-separated list to `--rootUrls`. Signing creates `dist/MANIFEST.txt`. Never commit or package the access-policy token itself.
 
 Private signatures are bound to the configured root URLs. Use the exact externally visible Grafana URLs, including any subpath, and repeat signing when the plugin contents or permitted root URLs change.
+
+The short example above is only a summary. Follow the [complete plugin signing guide](PLUGIN-SIGNING.md) before producing a release artifact; it includes readiness requirements, secure token handling, packaging, automated release signing, and verification.
 
 ## Build and package
 
@@ -163,13 +165,13 @@ COPY --chown=grafana:grafana \
 USER grafana
 ```
 
-Build context must contain the packaged `digitalrcs-timeoverlay-panel` directory. The expected unsigned release does not contain `MANIFEST.txt`:
+Build context must contain the packaged `digitalrcs-timeoverlay-panel` directory. A signed release contains `MANIFEST.txt`; an approved unsigned package does not:
 
 ```bash
 docker build -t internal/grafana-with-time-overlay:13.1.2 .
 ```
 
-For the expected unsigned package, add:
+For an explicitly approved unsigned package only, add:
 
 ```dockerfile
 ENV GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=digitalrcs-timeoverlay-panel
@@ -214,7 +216,7 @@ env:
 
 The artifact URL, credentials, certificate authorities, network policy, persistent storage, and pod security context must follow the target environment's standards. Do not embed access tokens in Helm values committed to source control.
 
-After rollout, confirm that every Grafana replica loads the same plugin version and reports the expected unsigned status. A rolling deployment can temporarily serve different frontend assets if replicas are not updated consistently.
+After rollout, confirm that every Grafana replica loads the same plugin version and reports the expected signature status. A rolling deployment can temporarily serve different frontend assets if replicas are not updated consistently.
 
 ## Verify the deployment
 

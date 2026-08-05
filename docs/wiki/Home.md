@@ -1,6 +1,6 @@
 # DigitalRCS-TimeOverlay-Panel
 
-DigitalRCS-TimeOverlay-Panel is a Grafana panel visualization that combines Grafana-compatible time-series rendering with persistent duration selections and movable notes. Overlays are stored with the dashboard and remain visible in supported PNG and PDF rendering.
+DigitalRCS-TimeOverlay-Panel is a datasource-neutral Grafana panel visualization that combines Grafana-compatible time-series rendering with persistent duration selections and movable notes. It can visualize any compatible time-series measurements; no datasource, series name, or business domain is hardcoded. Overlays are stored with the dashboard and remain visible in supported PNG and PDF rendering.
 
 ![DigitalRCS-TimeOverlay-Panel](https://raw.githubusercontent.com/digitalrcs/DigitalRCS-TimeOverlay-Panel/main/docs/images/digitalrcs-time-overlay-panel.jpg)
 
