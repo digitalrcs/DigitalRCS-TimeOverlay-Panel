@@ -11,10 +11,6 @@ permissions: read-all
 
 jobs:
   release:
-    # Leave this repository variable unset/false while Grafana reviews the
-    # unsigned first submission. Set GRAFANA_PUBLIC_SIGNING_ENABLED=true only
-    # after Grafana grants the plugin a public signature level.
-    if: ${{ vars.GRAFANA_PUBLIC_SIGNING_ENABLED == 'true' }}
     permissions:
       id-token: write
       contents: write
@@ -27,8 +23,7 @@ jobs:
 
       - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.2.0
         with:
-          # Create both secrets before producing a signed private release.
-          # GRAFANA_SIGN_ROOT_URLS is a comma-separated list of exact Grafana root_url values.
-          policy_token: ${{ secrets.GRAFANA_ACCESS_POLICY_TOKEN }}
-          sign_root_urls: ${{ secrets.GRAFANA_SIGN_ROOT_URLS }}
+          # An empty token produces an unsigned review package. Enable signing
+          # only after Grafana grants this public plugin a signature level.
+          policy_token: ${{ vars.GRAFANA_PUBLIC_SIGNING_ENABLED == 'true' && secrets.GRAFANA_ACCESS_POLICY_TOKEN || '' }}
           attestation: true
