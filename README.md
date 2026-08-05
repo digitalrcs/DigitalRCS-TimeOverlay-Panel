@@ -13,11 +13,13 @@ Developed by [DigitalRCS](https://www.digitalrcs.com).
 
 ### Time overlay panel
 
-![DigitalRCS-TimeOverlay-Panel showing two data-center series, a selected duration range, and a movable note](docs/images/digitalrcs-time-overlay-panel.jpg)
+![DigitalRCS-TimeOverlay-Panel showing two example series, a selected duration range, and a movable note](docs/images/digitalrcs-time-overlay-panel.jpg)
 
 ### Grafana dashboard
 
 ![Grafana dashboard displaying DigitalRCS-TimeOverlay-Panel with its selection and note controls](docs/images/digitalrcs-time-overlay-dashboard.jpg)
+
+The screenshots use infrastructure measurements as one example. The panel accepts any compatible time-series data and does not contain domain-specific logic.
 
 ## Documentation
 
@@ -26,6 +28,7 @@ Developed by [DigitalRCS](https://www.digitalrcs.com).
 - [Data sources and queries](docs/wiki/Data-Sources.md)
 - [Panel configuration](docs/wiki/Panel-Configuration.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
+- [Plugin signing guide](docs/PLUGIN-SIGNING.md)
 - [Developer guide](docs/wiki/Developer-Guide.md)
 - [Troubleshooting](docs/wiki/Troubleshooting.md)
 
@@ -125,9 +128,10 @@ npm run build
 ### Use a Splunk CSV export locally
 
 The development stack installs the signed Grafana CSV data-source plugin and
-provisions **Local Data Centers CSV**. To replace the sample with another
-Splunk export containing `_time` (or `time`) followed by one or more numeric
-data-center columns, run:
+provisions a sample CSV datasource. The included sample happens to use
+infrastructure series, but the panel is designed for generic time-series data.
+To replace the sample with another export containing
+`_time` (or `time`) followed by one or more numeric measurement columns, run:
 
 ```powershell
 .\scripts\prepare-csv.ps1 -InputPath C:\path\to\datasource.csv
@@ -138,10 +142,10 @@ The converter validates all rows and changes Splunk offsets such as `-0400`
 to the RFC-3339 form `-04:00` required by the CSV parser. Timestamps without an
 offset, such as `2026-08-01 20:00:00`, are interpreted in
 `America/New_York` by default. Use `-TimeZoneId` to select another source time
-zone. Data-center names are not hard-coded: headers such as `USTX01`, `UXVA01`,
-or `USAZ01` are preserved, and integer or decimal values are accepted. Spaces
-around column names and values are accepted. The original export is not
-modified.
+zone. Series names are not hard-coded: headers such as `temperature`,
+`request_count`, `latency_ms`, or any other measurement name are preserved, and
+integer or decimal values are accepted. Spaces around column names and values
+are accepted. The original export is not modified.
 
 ### Configure a new CSV query
 
@@ -149,13 +153,13 @@ Selecting a CSV datasource does not, by itself, define which fields that
 datasource should return. In the CSV query editor:
 
 1. Under **Fields**, name the time field exactly as it appears in the file (`time` or `_time`) and set its type to **Time**.
-2. Leave **Ignore unknown** turned off so changing data-center columns are returned too.
-3. You may add each data-center field as **Number**, but it is not required for this panel. Numeric-looking string fields are detected automatically.
+2. Leave **Ignore unknown** turned off so changing measurement columns are returned too.
+3. You may add each measurement field as **Number**, but it is not required for this panel. Numeric-looking string fields are detected automatically.
 4. Set **Timezone** to the source timezone when timestamps do not contain an offset.
 
 Splunk and other datasources normally return typed fields directly. The panel
 uses any existing Grafana time field and plots every numeric field, so a query
-can return different data-center names without changing the panel.
+can return different series names without changing the panel.
 
 ## Using overlays
 
@@ -168,15 +172,15 @@ can return different data-center names without changing the panel.
 7. Select an overlay and use the trash button to delete it.
 8. Save the dashboard before exporting or leaving the page.
 
-### Set a color for an individual data center
+### Set a color for an individual series
 
 1. Edit the panel and open **Overrides**.
-2. Select **Add field override**, then **Fields with name** and choose `DC1`, `DC2`, or another series.
+2. Select **Add field override**, then **Fields with name** and choose any returned series.
 3. Add the **Color** property and choose **Fixed color**.
 
 The default **Classic palette** gives the returned series distinct colors.
 Overrides let you enforce stable, organization-specific colors for particular
-data-center names without using thresholds. The note and range opacity sliders
+series names without using thresholds. The note and range opacity sliders
 are under the panel's standard options.
 
 Grafana's server-side image renderer captures the saved panel state. The edit toolbar is automatically hidden on `/render` routes. PDF export requires Grafana Enterprise; PNG export requires the Grafana image renderer service.
@@ -186,13 +190,13 @@ Grafana's server-side image renderer captures the saved panel state. The edit to
 See [Deployment](docs/DEPLOYMENT.md) for detailed instructions covering:
 
 - Installing a prebuilt GitHub Release ZIP without Node.js, npm, or compilation
-- Configuring Grafana to load the expected unsigned release package
+- Installing signed releases or explicitly approved unsigned packages
 - Windows service installations
 - Linux and virtual-machine installations
 - Docker and Docker Compose
 - Kubernetes and Helm-oriented deployments
 - Signed private production plugins
-- Explicitly allowlisted unsigned release plugins
+- Private and public Grafana plugin-signing routes
 
 Do not commit Grafana access-policy tokens, administrator passwords, internal URLs, or private certificates. Store deployment secrets in the target organization's approved secret manager or CI secret store.
 

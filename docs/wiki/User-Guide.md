@@ -8,7 +8,7 @@
 4. Confirm the query returns a Grafana time field and at least one numeric field.
 5. Save the dashboard.
 
-Series names are taken from the numeric fields returned by the query. They do not need to follow a fixed naming convention. Names such as `USTX01`, `UXVA01`, or any other dynamically returned field are supported.
+Series names are taken from the numeric fields returned by the query. They do not need to follow a fixed naming convention. Names such as `temperature`, `request_count`, `latency_ms`, or any other dynamically returned field are supported. The panel contains no domain-specific logic.
 
 ## Toolbar controls
 

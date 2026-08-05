@@ -68,7 +68,7 @@ Use `npm run e2e` with the Grafana test environment for interaction changes. Tes
 
 `npm run build` produces `dist`, which is the deployable frontend plugin. Release archives must contain a top-level directory named `digitalrcs-timeoverlay-panel`. The GitHub release workflow validates plugin metadata and packages tagged versions.
 
-The plugin is expected to be unsigned unless it is privately signed for approved root URLs or published in Grafana's catalog. Never commit signing tokens or production credentials. See the [deployment guide](Deployment) for the release and installation paths.
+Use a Grafana private signature for approved internal root URLs or the Grafana catalog process for public distribution. Never commit signing tokens, private root URLs, or production credentials. See [Plugin signing](Plugin-Signing) and the [deployment guide](Deployment) for the release and installation paths.
 
 ## Contribution workflow
 
