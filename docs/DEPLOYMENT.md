@@ -85,12 +85,12 @@ The archive must have this layout:
 
 ```text
 digitalrcs-timeoverlay-panel/
-├── plugin.json
-├── module.js
-├── README.md
-├── LICENSE
-├── MANIFEST.txt          # present when signed
-└── img/
+|-- plugin.json
+|-- module.js
+|-- README.md
+|-- LICENSE
+|-- MANIFEST.txt          # present when signed
+`-- img/
 ```
 
 GitHub Actions also builds and validates the plugin. A tag such as `v1.0.0` invokes the release workflow.
@@ -154,7 +154,7 @@ Configure the allowlist under `[plugins]` in `grafana.ini` before restarting. Do
 For controlled deployments, extract the approved published ZIP and bake its top-level plugin directory into an immutable Grafana image:
 
 ```dockerfile
-FROM grafana/grafana-enterprise:13.1.1
+FROM grafana/grafana-enterprise:13.1.2
 
 USER root
 COPY --chown=grafana:grafana \
@@ -166,7 +166,7 @@ USER grafana
 Build context must contain the packaged `digitalrcs-timeoverlay-panel` directory. The expected unsigned release does not contain `MANIFEST.txt`:
 
 ```bash
-docker build -t internal/grafana-with-time-overlay:13.1.1 .
+docker build -t internal/grafana-with-time-overlay:13.1.2 .
 ```
 
 For the expected unsigned package, add:
@@ -184,7 +184,7 @@ The repository's generated Compose setup mounts `dist` automatically. A generic 
 ```yaml
 services:
   grafana:
-    image: grafana/grafana-enterprise:13.1.1
+    image: grafana/grafana-enterprise:13.1.2
     ports:
       - '3000:3000'
     environment:
@@ -220,7 +220,7 @@ After rollout, confirm that every Grafana replica loads the same plugin version 
 
 1. Inspect Grafana logs for the plugin ID and signature status.
 2. Sign in as a Grafana administrator.
-3. Navigate to **Administration → Plugins and data → Plugins**.
+3. Navigate to **Administration > Plugins and data > Plugins**.
 4. Confirm **DigitalRCS-TimeOverlay-Panel** is present.
 5. Add a panel and select **DigitalRCS-TimeOverlay-Panel** as its visualization.
 6. Query data containing a time field and at least one numeric field.

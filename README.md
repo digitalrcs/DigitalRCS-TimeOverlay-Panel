@@ -9,6 +9,26 @@ It is installed as a separate **DigitalRCS-TimeOverlay-Panel** visualization. Us
 
 Developed by [DigitalRCS](https://www.digitalrcs.com).
 
+## Screenshots
+
+### Time overlay panel
+
+![DigitalRCS-TimeOverlay-Panel showing two data-center series, a selected duration range, and a movable note](docs/images/digitalrcs-time-overlay-panel.jpg)
+
+### Grafana dashboard
+
+![Grafana dashboard displaying DigitalRCS-TimeOverlay-Panel with its selection and note controls](docs/images/digitalrcs-time-overlay-dashboard.jpg)
+
+## Documentation
+
+- [GitHub Wiki](https://github.com/digitalrcs/DigitalRCS-TimeOverlay-Panel/wiki)
+- [User guide](docs/wiki/User-Guide.md)
+- [Data sources and queries](docs/wiki/Data-Sources.md)
+- [Panel configuration](docs/wiki/Panel-Configuration.md)
+- [Deployment guide](docs/DEPLOYMENT.md)
+- [Developer guide](docs/wiki/Developer-Guide.md)
+- [Troubleshooting](docs/wiki/Troubleshooting.md)
+
 ## Features
 
 - Use Grafana-style drag-to-zoom, tooltips, axes, and legends on the native time-series renderer.
@@ -38,6 +58,7 @@ The `time`/`_time` recognition and numeric-string conversion are compatibility f
 untyped table results; they are not tied to CSV or Splunk. When a datasource returns another
 shape, use its query editor or Grafana transformations such as **Convert field type**, exactly as
 you would for the built-in Time series panel.
+
 - Give dynamically discovered series distinct palette colors, or assign fixed colors to individual fields with Grafana field overrides.
 - Adjust note and highlighted-range background opacity independently from their colors.
 

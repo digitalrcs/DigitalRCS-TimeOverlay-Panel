@@ -1,5 +1,5 @@
 param(
-  [string]$GrafanaUrl = 'http://localhost:3000',
+  [string]$GrafanaUrl = 'http://localhost:3001',
   [string]$DashboardPath = (Join-Path $PSScriptRoot '..\provisioning\dashboards\dashboard.json'),
   [PSCredential]$Credential = (Get-Credential -Message 'Grafana administrator or editor credentials'),
   [switch]$Overwrite
