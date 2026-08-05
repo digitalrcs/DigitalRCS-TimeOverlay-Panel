@@ -1,0 +1,136 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "marcusolsson-csv-datasource",
+        "uid": "local-datacenters-csv"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic-by-name"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "USTX01" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#5794F2", "mode": "fixed" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "UXVA01" },
+            "properties": [{ "id": "color", "value": { "fixedColor": "#73BF69", "mode": "fixed" } }]
+          }
+        ]
+      },
+      "id": 1,
+      "options": {
+        "noteColor": "#FFDB5C",
+        "noteOpacity": 55,
+        "notes": [],
+        "rangeColor": "#FF9830",
+        "rangeOpacity": 20,
+        "ranges": [],
+        "showLegend": true,
+        "showToolbar": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "local-datacenters-csv"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "ignoreUnknown": false,
+          "refId": "A",
+          "schema": [
+            { "name": "_time", "type": "time" }
+          ],
+          "skipRows": 0,
+          "timezone": "America/New_York"
+        }
+      ],
+      "title": "Data Center Volume",
+      "type": "digitalrcs-timeoverlay-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-testdata-datasource",
+        "uid": "trlxrdZVk"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "noteColor": "rgba(255, 213, 0, 0.72)",
+        "notes": [],
+        "rangeColor": "rgba(255, 152, 48, 0.28)",
+        "ranges": [],
+        "showLegend": true,
+        "showToolbar": true
+      },
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {
+            "type": "grafana-testdata-datasource",
+            "uid": "db84e60d-b92a-4089-82cb-34842fb1754b"
+          },
+          "refId": "A",
+          "scenarioId": "no_data_points"
+        }
+      ],
+      "title": "Sample Panel Title",
+      "type": "digitalrcs-timeoverlay-panel"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2026-07-01T00:00:00.000Z",
+    "to": "2026-08-04T00:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "DigitalRCS-TimeOverlay-Panel dashboard",
+  "uid": "a538aeff-5a8a-42a5-901c-938d896fdd6f",
+  "version": 1,
+  "weekStart": ""
+}

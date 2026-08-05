@@ -1,0 +1,45 @@
+services:
+  grafana:
+    extends:
+      file: .config/docker-compose-base.yaml
+      service: grafana
+    build:
+      args:
+        grafana_version: ${GRAFANA_VERSION:-13.1.2}
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_PLUGINS_PREINSTALL_SYNC: marcusolsson-csv-datasource@1.0.0
+      GF_PLUGIN_MARCUSOLSSON_CSV_DATASOURCE_ALLOW_LOCAL_MODE: "true"
+    ports: !override
+      - ${GRAFANA_PORT:-3001}:3000/tcp
+    volumes:
+      - ./.local/grafana-data:/var/lib/grafana
+
+  dashboard-importer:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      - grafana
+    environment:
+      GRAFANA_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GRAFANA_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - ./provisioning/dashboards/dashboard.json:/dashboard.json:ro
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        until curl --silent --fail http://grafana:3000/api/health >/dev/null; do sleep 2; done
+        if curl --silent --fail \
+          --user "$${GRAFANA_ADMIN_USER}:$${GRAFANA_ADMIN_PASSWORD}" \
+          http://grafana:3000/api/dashboards/uid/a538aeff-5a8a-42a5-901c-938d896fdd6f >/dev/null; then
+          echo 'Example dashboard already exists; keeping UI changes.'
+          exit 0
+        fi
+        printf '{"dashboard":' >/tmp/dashboard-import.json
+        cat /dashboard.json >>/tmp/dashboard-import.json
+        printf ',"overwrite":false}' >>/tmp/dashboard-import.json
+        curl --silent --show-error --fail-with-body \
+          --user "$${GRAFANA_ADMIN_USER}:$${GRAFANA_ADMIN_PASSWORD}" \
+          --header 'Content-Type: application/json' \
+          --data-binary @/tmp/dashboard-import.json \
+          http://grafana:3000/api/dashboards/db

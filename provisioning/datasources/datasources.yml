@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: TestData DB
+    type: testdata
+    uid: trlxrdZVk
+    isDefault: true
+  - name: Local Data Centers CSV
+    type: marcusolsson-csv-datasource
+    uid: local-datacenters-csv
+    access: proxy
+    url: /etc/grafana/provisioning/data/datasource-grafana.csv
+    editable: true
+    jsonData:
+      storage: local

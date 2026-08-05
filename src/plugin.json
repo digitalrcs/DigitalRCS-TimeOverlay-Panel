@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "panel",
+  "name": "DigitalRCS-TimeOverlay-Panel",
+  "id": "digitalrcs-timeoverlay-panel",
+  "info": {
+    "keywords": ["panel", "time series", "annotations", "notes", "overlay"],
+    "description": "Interactive time-series panel with printable duration selections and movable notes.",
+    "author": {
+      "name": "DigitalRCS",
+      "url": "https://www.digitalrcs.com"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "DigitalRCS Website",
+        "url": "https://www.digitalrcs.com"
+      },
+      {
+        "name": "Source",
+        "url": "https://github.com/digitalrcs/DigitalRCS-TimeOverlay-Panel"
+      },
+      {
+        "name": "Deployment guide",
+        "url": "https://github.com/digitalrcs/DigitalRCS-TimeOverlay-Panel/blob/main/docs/DEPLOYMENT.md"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=12.3.0",
+    "plugins": []
+  }
+}
