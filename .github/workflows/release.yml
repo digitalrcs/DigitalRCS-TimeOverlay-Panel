@@ -11,6 +11,10 @@ permissions: read-all
 
 jobs:
   release:
+    # Leave this repository variable unset/false while Grafana reviews the
+    # unsigned first submission. Set GRAFANA_PUBLIC_SIGNING_ENABLED=true only
+    # after Grafana grants the plugin a public signature level.
+    if: ${{ vars.GRAFANA_PUBLIC_SIGNING_ENABLED == 'true' }}
     permissions:
       id-token: write
       contents: write
