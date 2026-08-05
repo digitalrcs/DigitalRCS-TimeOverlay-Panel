@@ -10,11 +10,11 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
       GF_PLUGINS_PREINSTALL_SYNC: marcusolsson-csv-datasource@1.0.0
-      GF_PLUGIN_MARCUSOLSSON_CSV_DATASOURCE_ALLOW_LOCAL_MODE: "true"
     ports: !override
       - ${GRAFANA_PORT:-3001}:3000/tcp
     volumes:
       - ./.local/grafana-data:/var/lib/grafana
+      - ./provisioning/grafana.ini:/etc/grafana/grafana.ini:ro
 
   dashboard-importer:
     image: curlimages/curl:8.12.1
