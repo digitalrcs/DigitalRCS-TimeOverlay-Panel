@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.0.0 (Unreleased)
+## 1.0.1
+
+- Replaced the generic Apache license placeholders with the DigitalRCS copyright notice.
+- Added packaged catalog screenshots to the plugin metadata.
+- Added provenance attestation to unsigned review builds while preserving opt-in signing after Grafana approval.
+
+## 1.0.0
 
 - Established the production identity **DigitalRCS-TimeOverlay-Panel** with plugin ID `digitalrcs-timeoverlay-panel` and official website metadata for [DigitalRCS](https://www.digitalrcs.com).
 - Added the separate **DigitalRCS-TimeOverlay-Panel** visualization backed by Grafana's native time-series renderer.

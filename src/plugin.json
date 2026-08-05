@@ -28,7 +28,16 @@
         "url": "https://github.com/digitalrcs/DigitalRCS-TimeOverlay-Panel/blob/main/docs/DEPLOYMENT.md"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "Time range and note overlays",
+        "path": "img/digitalrcs-time-overlay-panel.jpg"
+      },
+      {
+        "name": "Grafana dashboard view",
+        "path": "img/digitalrcs-time-overlay-dashboard.jpg"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

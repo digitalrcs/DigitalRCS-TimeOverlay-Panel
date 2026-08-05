@@ -24,6 +24,8 @@ export default defineConfig([
       '**/coverage',
       '**/dist/',
       '**/artifacts/',
+      '**/output/',
+      '**/tmp/',
       '**/work/',
       '**/ci/',
       'test-results/',
