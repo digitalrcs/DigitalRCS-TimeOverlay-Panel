@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 (Unreleased)
+## 1.1.0 - 2026-08-12
 
 - Moved range duration labels into a dedicated strip below each highlighted range so narrow selections remain readable.
 - Made range durations editable with compact values such as `2d 1h 14m`, automatically resizing the selection within the original timeline.
