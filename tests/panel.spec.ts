@@ -1,6 +1,9 @@
 import { test, expect } from '@grafana/plugin-e2e';
 
-test('explains the required fields when panel data is empty', async ({ gotoPanelEditPage, readProvisionedDashboard }) => {
+test('explains the required fields when panel data is empty', async ({
+  gotoPanelEditPage,
+  readProvisionedDashboard,
+}) => {
   const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
   const panelEditPage = await gotoPanelEditPage({ dashboard, id: '2' });
   await expect(panelEditPage.panel.locator).toContainText('needs a Grafana time field and at least one numeric field');
@@ -24,6 +27,8 @@ test('draws a persistent duration overlay', async ({ gotoPanelEditPage, readProv
 
   await page.getByRole('button', { name: 'Draw time range' }).click();
   const plot = page.getByTestId('plot-area');
+  const ranges = page.getByTestId('time-range-overlay');
+  const initialRangeCount = await ranges.count();
   const bounds = await plot.boundingBox();
   if (!bounds) {
     throw new Error('Plot area has no bounding box');
@@ -33,8 +38,20 @@ test('draws a persistent duration overlay', async ({ gotoPanelEditPage, readProv
   await page.mouse.move(bounds.x + bounds.width * 0.55, bounds.y + bounds.height * 0.5);
   await page.mouse.up();
 
-  await expect(page.getByTestId('time-range-overlay')).toBeVisible();
-  await expect(page.getByTestId('range-duration')).not.toBeEmpty();
+  await expect(ranges).toHaveCount(initialRangeCount + 1);
+
+  const range = ranges.last();
+  const duration = page.getByRole('textbox', { name: 'Range duration' }).last();
+  await expect(range).toBeVisible();
+  await expect(duration).not.toHaveValue('');
+  const initialBounds = await range.boundingBox();
+  await duration.fill('1d 2h 30m');
+  await duration.press('Enter');
+  await expect(duration).toHaveValue('1d 2h 30m');
+  const resizedBounds = await range.boundingBox();
+  expect(initialBounds).not.toBeNull();
+  expect(resizedBounds).not.toBeNull();
+  expect(resizedBounds!.width).toBeLessThan(initialBounds!.width);
 });
 
 test('adds and edits a note overlay', async ({ gotoPanelEditPage, readProvisionedDashboard, page }) => {

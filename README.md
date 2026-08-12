@@ -40,7 +40,8 @@ The screenshots use infrastructure measurements as one example. The panel accept
 - Zoom in or out by 50% with toolbar buttons, or select an exact zoom area by dragging.
 - Restore the original dashboard range with **Zoom all**; zoom-out is capped at that range.
 - Draw a time range by selecting **Range** and dragging across the plot.
-- Display the selected duration in a box on the range.
+- Display the selected duration in a readable box below the range, including narrow selections.
+- Enter a compact duration such as `2d 1h 14m` to resize the selected range precisely.
 - Select and drag a range, or resize it from either edge.
 - Add editable notes with a translucent background.
 - Drag notes by their header and resize them from the lower-right corner.
@@ -167,10 +168,11 @@ can return different series names without changing the panel.
 2. Use **Zoom in** or **Zoom out** for a 50% step. **Zoom out** stops at the original range, and **Zoom all** restores that range immediately.
 3. In **Select** mode, drag horizontally across empty plot space to zoom to an exact interval. Shift-drag also supports vertical-axis zoom.
 4. Select **Range**, then press and drag horizontally across the graph to create a printable duration overlay.
-5. Select an existing range to move it or expose its two resize handles.
-6. Select **Note** to add a note. Type directly in it, drag its **Note** header, or resize its lower-right corner.
-7. Select an overlay and use the trash button to delete it.
-8. Save the dashboard before exporting or leaving the page.
+5. To set an exact span, select the duration below the range, enter a value such as `6h 30m`, and press **Enter**.
+6. Select an existing range to move it or expose its two resize handles.
+7. Select **Note** to add a note. Type directly in it, drag its **Note** header, or resize its lower-right corner.
+8. Select an overlay and use the trash button to delete it.
+9. Save the dashboard before exporting or leaving the page.
 
 ### Set a color for an individual series
 
