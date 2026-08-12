@@ -28,12 +28,14 @@ The toolbar is automatically omitted from Grafana render routes used for image a
 
 1. Select **Range**.
 2. Drag from the desired start time to the desired end time.
-3. The highlighted overlay displays the elapsed duration.
-4. Select and drag the overlay to move it without changing its length.
-5. Select the overlay and drag either edge handle to adjust its start or end.
-6. Save the dashboard to persist it.
+3. The highlighted overlay displays the elapsed duration in a box below the range so it remains readable for narrow selections.
+4. To set an exact span, select the duration box, enter a compact value such as `2d 1h 14m`, `6h 30m`, or `45m`, and press **Enter** or leave the field.
+5. Select and drag the overlay to move it without changing its length.
+6. Select the overlay and drag either edge handle to adjust its start or end.
+7. Save the dashboard to persist it.
 
 Duration labels automatically use milliseconds, seconds, minutes, hours, or days as appropriate.
+The range start stays fixed when the requested duration fits. Near the end of the original timeline, the panel shifts the range left as needed. Durations longer than the original timeline are capped to the full timeline. Invalid or zero durations are not applied.
 
 ## Add and edit a note
 

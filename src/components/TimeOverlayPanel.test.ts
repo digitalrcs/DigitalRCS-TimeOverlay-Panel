@@ -1,6 +1,12 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { LineInterpolation, VisibilityMode } from '@grafana/schema';
-import { applySeriesDisplayOptions, calculateZoomRange, formatDuration } from './TimeOverlayPanel';
+import {
+  applySeriesDisplayOptions,
+  calculateZoomRange,
+  formatDuration,
+  parseDuration,
+  resizeRangeToDuration,
+} from './TimeOverlayPanel';
 
 describe('formatDuration', () => {
   it.each([
@@ -11,6 +17,38 @@ describe('formatDuration', () => {
     [90_061_000, '1d 1h 1m'],
   ])('formats %i milliseconds as %s', (milliseconds, expected) => {
     expect(formatDuration(milliseconds)).toBe(expected);
+  });
+});
+
+describe('parseDuration', () => {
+  it.each([
+    ['2d 1h 14m', 177_240_000],
+    ['6h 30m', 23_400_000],
+    ['45m', 2_700_000],
+    ['1.5h', 5_400_000],
+    ['30s 250ms', 30_250],
+  ])('parses %s', (value, expected) => {
+    expect(parseDuration(value)).toBe(expected);
+  });
+
+  it.each(['', 'tomorrow', '2 hours', '0m', '-1h', '1h extra'])('rejects invalid duration %s', (value) => {
+    expect(parseDuration(value)).toBeUndefined();
+  });
+});
+
+describe('resizeRangeToDuration', () => {
+  const bounds = { from: 0, to: 1_000 };
+
+  it('keeps the start anchored when the requested duration fits', () => {
+    expect(resizeRangeToDuration({ from: 200, to: 400 }, 300, bounds)).toEqual({ from: 200, to: 500 });
+  });
+
+  it('shifts left to preserve the requested duration at the right boundary', () => {
+    expect(resizeRangeToDuration({ from: 800, to: 900 }, 300, bounds)).toEqual({ from: 700, to: 1_000 });
+  });
+
+  it('caps durations longer than the original timeline', () => {
+    expect(resizeRangeToDuration({ from: 200, to: 400 }, 2_000, bounds)).toEqual(bounds);
   });
 });
 

@@ -118,6 +118,134 @@ export const formatDuration = (milliseconds: number): string => {
   return `${millis}ms`;
 };
 
+const DURATION_TOKEN = /(\d+(?:\.\d+)?)\s*(ms|d|h|m|s)/gi;
+const DURATION_UNITS: Record<string, number> = {
+  d: 86_400_000,
+  h: 3_600_000,
+  m: 60_000,
+  s: 1_000,
+  ms: 1,
+};
+
+export const parseDuration = (value: string): number | undefined => {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  let duration = 0;
+  let lastIndex = 0;
+  let tokenCount = 0;
+  for (const match of normalized.matchAll(DURATION_TOKEN)) {
+    if (normalized.slice(lastIndex, match.index).trim()) {
+      return undefined;
+    }
+    duration += Number(match[1]) * DURATION_UNITS[match[2].toLowerCase()];
+    lastIndex = (match.index ?? 0) + match[0].length;
+    tokenCount += 1;
+  }
+
+  if (tokenCount === 0 || normalized.slice(lastIndex).trim() || !Number.isFinite(duration) || duration <= 0) {
+    return undefined;
+  }
+  return Math.round(duration);
+};
+
+export const resizeRangeToDuration = (
+  range: NumericTimeRange,
+  duration: number,
+  bounds: NumericTimeRange
+): NumericTimeRange => {
+  const boundsDuration = Math.max(1, bounds.to - bounds.from);
+  const nextDuration = clamp(Math.round(duration), 1, boundsDuration);
+  const from = clamp(range.from, bounds.from, bounds.to - nextDuration);
+  return { from, to: from + nextDuration };
+};
+
+const RangeDurationEditor = ({
+  duration,
+  editable,
+  className,
+  style,
+  onSelect,
+  onCommit,
+}: {
+  duration: number;
+  editable: boolean;
+  className: string;
+  style: React.CSSProperties;
+  onSelect: () => void;
+  onCommit: (duration: number) => void;
+}) => {
+  const formattedDuration = formatDuration(duration);
+  const [draft, setDraft] = useState(formattedDuration);
+  const [editing, setEditing] = useState(false);
+  const [invalid, setInvalid] = useState(false);
+
+  if (!editable) {
+    return (
+      <output className={className} style={style} data-testid="range-duration">
+        {formattedDuration}
+      </output>
+    );
+  }
+
+  const applyDraft = (): boolean => {
+    const parsed = parseDuration(draft);
+    if (parsed === undefined) {
+      setInvalid(true);
+      return false;
+    }
+    setInvalid(false);
+    onCommit(parsed);
+    return true;
+  };
+
+  return (
+    <input
+      type="text"
+      className={className}
+      style={style}
+      aria-label="Range duration"
+      aria-invalid={invalid}
+      title={invalid ? 'Use a duration such as 2d 1h 14m' : 'Enter a duration such as 2d 1h 14m'}
+      value={editing ? draft : formattedDuration}
+      data-testid="range-duration"
+      onChange={(event) => {
+        setDraft(event.currentTarget.value);
+        setInvalid(false);
+      }}
+      onBlur={() => {
+        if (applyDraft()) {
+          setEditing(false);
+        }
+      }}
+      onFocus={() => {
+        setDraft(formattedDuration);
+        setInvalid(false);
+        setEditing(true);
+        onSelect();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          if (applyDraft()) {
+            setEditing(false);
+            event.currentTarget.blur();
+          }
+        } else if (event.key === 'Escape') {
+          setDraft(formattedDuration);
+          setInvalid(false);
+          setEditing(false);
+        }
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+        onSelect();
+      }}
+    />
+  );
+};
+
 const PlotBridge = ({
   config,
   rootRef,
@@ -219,7 +347,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   range: css`
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 32px;
     min-width: 2px;
     border-right: 1px solid ${theme.colors.warning.main};
     border-left: 1px solid ${theme.colors.warning.main};
@@ -233,21 +361,28 @@ const getStyles = (theme: GrafanaTheme2) => ({
   `,
   duration: css`
     position: absolute;
-    bottom: 8px;
-    left: 50%;
-    max-width: calc(100% - 8px);
-    padding: 3px 7px;
-    overflow: hidden;
+    z-index: 3;
+    bottom: 3px;
+    width: 118px;
+    height: 25px;
+    padding: 2px 7px;
     border-radius: 3px;
+    border: 1px solid ${theme.colors.border.medium};
     color: ${theme.colors.text.primary};
     background: ${theme.colors.background.primary};
     box-shadow: ${theme.shadows.z1};
     font-size: 12px;
     font-weight: ${theme.typography.fontWeightMedium};
     line-height: 18px;
-    text-overflow: ellipsis;
+    text-align: center;
     white-space: nowrap;
     transform: translateX(-50%);
+    user-select: text;
+
+    &[aria-invalid='true'] {
+      border-color: ${theme.colors.error.main};
+      outline: 1px solid ${theme.colors.error.main};
+    }
   `,
   handle: css`
     position: absolute;
@@ -567,6 +702,12 @@ export const TimeOverlayPanel: React.FC<Props> = ({
     );
     setSelection(undefined);
   };
+  const setRangeDuration = (range: TimeRangeOverlay, duration: number) => {
+    const resized = resizeRangeToDuration(range, duration, baselineRangeRef.current);
+    commit({
+      ranges: ranges.map((item) => (item.id === range.id ? { ...item, ...resized } : item)),
+    });
+  };
 
   return (
     <div ref={rootRef} className={styles.root} style={{ width, height }} data-testid="time-overlay-panel">
@@ -677,58 +818,65 @@ export const TimeOverlayPanel: React.FC<Props> = ({
         {visibleRanges.map((range) => {
           const left = clamp(timeToRatio(range.from), 0, 1);
           const right = clamp(timeToRatio(range.to), 0, 1);
+          const center = ((left + right) / 2) * 100;
           const selected = selection?.kind === 'range' && selection.id === range.id;
           return (
-            <div
-              key={range.id}
-              className={cx(styles.range, selected && styles.selected)}
-              style={{
-                left: `${left * 100}%`,
-                width: `${Math.max(0.002, right - left) * 100}%`,
-                background: rangeBackground,
-              }}
-              data-testid={range.id === 'preview' ? 'range-preview' : 'time-range-overlay'}
-              onPointerDown={(event) => {
-                if (range.id === 'preview' || event.button !== 0) {
-                  return;
-                }
-                event.stopPropagation();
-                setSelection({ kind: 'range', id: range.id });
-                updateInteraction({
-                  kind: 'move-range',
-                  id: range.id,
-                  pointerStart: clientXToTime(event.clientX),
-                  from: range.from,
-                  to: range.to,
-                });
-              }}
-            >
-              <div className={styles.duration} data-testid="range-duration">
-                {formatDuration(range.to - range.from)}
+            <React.Fragment key={range.id}>
+              <div
+                className={cx(styles.range, selected && styles.selected)}
+                style={{
+                  left: `${left * 100}%`,
+                  width: `${Math.max(0.002, right - left) * 100}%`,
+                  background: rangeBackground,
+                }}
+                data-testid={range.id === 'preview' ? 'range-preview' : 'time-range-overlay'}
+                onPointerDown={(event) => {
+                  if (range.id === 'preview' || event.button !== 0) {
+                    return;
+                  }
+                  event.stopPropagation();
+                  setSelection({ kind: 'range', id: range.id });
+                  updateInteraction({
+                    kind: 'move-range',
+                    id: range.id,
+                    pointerStart: clientXToTime(event.clientX),
+                    from: range.from,
+                    to: range.to,
+                  });
+                }}
+              >
+                {selected ? (
+                  <>
+                    <span
+                      className={styles.handle}
+                      style={{ left: -5 }}
+                      aria-label="Resize range start"
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        updateInteraction({ kind: 'resize-range', id: range.id, edge: 'from' });
+                      }}
+                    />
+                    <span
+                      className={styles.handle}
+                      style={{ right: -5 }}
+                      aria-label="Resize range end"
+                      onPointerDown={(event) => {
+                        event.stopPropagation();
+                        updateInteraction({ kind: 'resize-range', id: range.id, edge: 'to' });
+                      }}
+                    />
+                  </>
+                ) : null}
               </div>
-              {selected ? (
-                <>
-                  <span
-                    className={styles.handle}
-                    style={{ left: -5 }}
-                    aria-label="Resize range start"
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      updateInteraction({ kind: 'resize-range', id: range.id, edge: 'from' });
-                    }}
-                  />
-                  <span
-                    className={styles.handle}
-                    style={{ right: -5 }}
-                    aria-label="Resize range end"
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      updateInteraction({ kind: 'resize-range', id: range.id, edge: 'to' });
-                    }}
-                  />
-                </>
-              ) : null}
-            </div>
+              <RangeDurationEditor
+                duration={range.to - range.from}
+                editable={range.id !== 'preview'}
+                className={styles.duration}
+                style={{ left: `clamp(59px, ${center}%, calc(100% - 59px))` }}
+                onSelect={() => setSelection({ kind: 'range', id: range.id })}
+                onCommit={(duration) => setRangeDuration(range, duration)}
+              />
+            </React.Fragment>
           );
         })}
 

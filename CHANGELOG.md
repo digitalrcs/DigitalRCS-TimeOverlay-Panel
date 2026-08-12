@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (Unreleased)
+
+- Moved range duration labels into a dedicated strip below each highlighted range so narrow selections remain readable.
+- Made range durations editable with compact values such as `2d 1h 14m`, automatically resizing the selection within the original timeline.
+
 ## 1.0.1
 
 - Replaced the generic Apache license placeholders with the DigitalRCS copyright notice.
