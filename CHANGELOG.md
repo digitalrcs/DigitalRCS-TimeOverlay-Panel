@@ -1,9 +1,16 @@
 # Changelog
 
-## 1.1.1 - 2026-09-18
+## 1.1.2 - 2026-09-18
+
+- Prepared the first publicly signed release following Grafana's successful review.
+- Updated transitive build and test dependencies fast-uri, js-yaml, and nanoid to address the security findings from release validation.
+- Retained the reviewed v1.1.0 panel functionality with no panel source changes.
+
+## 1.1.1 - 2026-09-18 (unpublished)
 
 - Prepared the first publicly signed release following Grafana's successful review.
 - Retained the reviewed v1.1.0 panel functionality with no runtime or dependency changes.
+- Release validation blocked publication after detecting newly reported vulnerabilities in transitive dependencies; superseded by v1.1.2.
 
 ## 1.1.0 - 2026-08-12
 
