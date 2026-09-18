@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2026-09-18
+
+- Prepared the first publicly signed release following Grafana's successful review.
+- Retained the reviewed v1.1.0 panel functionality with no runtime or dependency changes.
+
 ## 1.1.0 - 2026-08-12
 
 - Moved range duration labels into a dedicated strip below each highlighted range so narrow selections remain readable.
