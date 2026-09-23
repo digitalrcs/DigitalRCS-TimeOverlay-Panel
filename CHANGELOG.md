@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.3 - 2026-09-23
+
+- Expanded the Grafana catalog README with capabilities, screenshots, a practical multi-range example, and user configuration instructions.
+- Highlighted multiple elapsed-time measurements and persistent, movable, resizable notes.
+- Documented data requirements, dashboard persistence, and rendering expectations while keeping installation and development guidance in the project documentation.
+- No panel runtime or dependency changes.
+
 ## 1.1.2 - 2026-09-18
 
 - Prepared the first publicly signed release following Grafana's successful review.
