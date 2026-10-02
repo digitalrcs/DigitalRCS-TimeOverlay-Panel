@@ -16,6 +16,19 @@ export const plugin = new PanelPlugin<TimeOverlayOptions>(TimeOverlayPanel)
   })
   .setPanelOptions((builder) =>
     builder
+      .addRadio({
+        path: 'zoomMode',
+        name: 'Zoom behavior',
+        description:
+          'Panel-only zoom explores loaded data without changing other panels or fetching finer-resolution data.',
+        defaultValue: 'panel',
+        settings: {
+          options: [
+            { value: 'panel', label: 'This panel only' },
+            { value: 'dashboard', label: 'Entire dashboard' },
+          ],
+        },
+      })
       .addColorPicker({
         path: 'rangeColor',
         name: 'Time range color',

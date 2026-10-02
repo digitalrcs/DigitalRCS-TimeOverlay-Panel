@@ -23,6 +23,7 @@ jobs:
 
       - uses: grafana/plugin-actions/build-plugin@build-plugin/v1.2.0
         with:
+          node-version: '22'
           # An empty token produces an unsigned review package. Enable signing
           # only after Grafana grants this public plugin a signature level.
           policy_token: ${{ vars.GRAFANA_PUBLIC_SIGNING_ENABLED == 'true' && secrets.GRAFANA_ACCESS_POLICY_TOKEN || '' }}

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 - 2026-10-02
+
+- Updated vulnerable dependencies, clearing all high and low npm audit findings. Scoped overrides patch basic-ftp and Moment; remaining upstream Grafana Router findings are documented in docs/DEPENDENCY-REVIEW.md.
+
+- Added selectable panel-only or entire-dashboard zoom, with panel-only as the default for new and existing panels.
+- Panel-only drag, double-click, and toolbar zoom use loaded data without changing the dashboard range or issuing queries. Zoom all restores the current panel/dashboard range.
+- Reset the local viewport on incoming time-range changes and mode changes.
+- Clip timestamp overlays to the local viewport, hide out-of-view ranges, and preserve duration while moving partially visible ranges.
+- Keep duration inputs clickable in Select mode.
+- Added regression coverage for isolated zoom, dashboard zoom, reset, mode changes, and overlays.
+
 ## 1.1.3 - 2026-09-23
 
 - Expanded the Grafana catalog README with capabilities, screenshots, a practical multi-range example, and user configuration instructions.

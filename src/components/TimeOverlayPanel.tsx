@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { css, cx } from '@emotion/css';
-import { colorManipulator, DataFrame, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
+import { colorManipulator, DataFrame, dateTime, FieldType, GrafanaTheme2, PanelProps } from '@grafana/data';
 import { PanelDataErrorView } from '@grafana/runtime';
 import { LegendDisplayMode, LineInterpolation, SortOrder, TooltipDisplayMode, VisibilityMode } from '@grafana/schema';
 import { Icon, TimeSeries, TooltipPlugin, UPlotConfigBuilder, ZoomPlugin, useStyles2, useTheme2 } from '@grafana/ui';
@@ -250,13 +250,23 @@ const PlotBridge = ({
   config,
   rootRef,
   onPlotRect,
+  from,
+  to,
 }: {
   config: UPlotConfigBuilder;
   rootRef: React.RefObject<HTMLDivElement>;
   onPlotRect: (rect: PlotRect) => void;
+  from: number;
+  to: number;
 }) => {
+  const plotRef = useRef<uPlot>();
   useLayoutEffect(() => {
     const update = (plot: uPlot) => {
+      plotRef.current = plot;
+      if (rootRef.current) {
+        rootRef.current.dataset.renderedFrom = String(plot.scales.x.min);
+        rootRef.current.dataset.renderedTo = String(plot.scales.x.max);
+      }
       const root = rootRef.current?.getBoundingClientRect();
       const over = plot.over.getBoundingClientRect();
       if (root && over.width > 0 && over.height > 0) {
@@ -266,7 +276,15 @@ const PlotBridge = ({
     config.addHook('ready', update);
     config.addHook('setSize', update);
     config.addHook('syncRect', update);
+    config.addHook('setScale', update);
+    return () => {
+      plotRef.current = undefined;
+    };
   }, [config, onPlotRect, rootRef]);
+  // TimeSeries does not redraw for a timeRange-only prop change when frames stay identical.
+  useLayoutEffect(() => {
+    plotRef.current?.setScale('x', { min: from, max: to });
+  }, [config, from, to]);
   return null;
 };
 
@@ -379,6 +397,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
     transform: translateX(-50%);
     user-select: text;
 
+    /* Keep the editor clickable when the plot passes zoom gestures through. */
+    &[aria-label='Range duration'] {
+      pointer-events: auto;
+    }
+
     &[aria-invalid='true'] {
       border-color: ${theme.colors.error.main};
       outline: 1px solid ${theme.colors.error.main};
@@ -468,6 +491,20 @@ export const TimeOverlayPanel: React.FC<Props> = ({
     to: timeRange.to.valueOf(),
   });
   const requestedRangeRef = useRef<NumericTimeRange>();
+  const panelOnly = options.zoomMode !== 'dashboard';
+  const dashboardFrom = timeRange.from.valueOf();
+  const dashboardTo = Math.max(dashboardFrom + 1, timeRange.to.valueOf());
+  const [localRange, setLocalRange] = useState<NumericTimeRange>();
+  const [rangeContext, setRangeContext] = useState({ dashboardFrom, dashboardTo, panelOnly });
+  // Discard a local viewport as soon as Grafana supplies a new range or mode.
+  if (
+    rangeContext.dashboardFrom !== dashboardFrom ||
+    rangeContext.dashboardTo !== dashboardTo ||
+    rangeContext.panelOnly !== panelOnly
+  ) {
+    setRangeContext({ dashboardFrom, dashboardTo, panelOnly });
+    setLocalRange(undefined);
+  }
   const [interaction, setInteraction] = useState<Interaction>();
   const [tool, setTool] = useState<Tool>('zoom');
   const [selection, setSelection] = useState<Selection>();
@@ -494,8 +531,16 @@ export const TimeOverlayPanel: React.FC<Props> = ({
     theme.visualization.getColorByName(noteColor),
     clamp(options.noteOpacity ?? 55, 0, 100) / 100
   );
-  const domainFrom = timeRange.from.valueOf();
-  const domainTo = Math.max(domainFrom + 1, timeRange.to.valueOf());
+  const domainFrom = panelOnly && localRange ? localRange.from : dashboardFrom;
+  const domainTo = panelOnly && localRange ? localRange.to : dashboardTo;
+  const visibleTimeRange = useMemo(() => {
+    if (!panelOnly || !localRange) {
+      return timeRange;
+    }
+    const from = dateTime(localRange.from);
+    const to = dateTime(localRange.to);
+    return { from, to, raw: { from, to } };
+  }, [localRange, panelOnly, timeRange]);
   const effectivePlotRect = plotRect ?? {
     left: 54,
     top: 10,
@@ -562,11 +607,18 @@ export const TimeOverlayPanel: React.FC<Props> = ({
   }, []);
   const changeTimeRange = useCallback(
     (next: NumericTimeRange) => {
+      if (!Number.isFinite(next.from) || !Number.isFinite(next.to) || next.to <= next.from) {
+        return;
+      }
       const rounded = { from: Math.round(next.from), to: Math.round(next.to) };
+      if (panelOnly) {
+        setLocalRange(calculateZoomRange(rounded, 1, { from: dashboardFrom, to: dashboardTo }));
+        return;
+      }
       requestedRangeRef.current = rounded;
       onChangeTimeRange(rounded);
     },
-    [onChangeTimeRange]
+    [dashboardFrom, dashboardTo, onChangeTimeRange, panelOnly]
   );
   const handleZoom = useCallback(
     (next: NumericTimeRange) => changeTimeRange(calculateZoomRange(next, 1, baselineRangeRef.current)),
@@ -578,18 +630,24 @@ export const TimeOverlayPanel: React.FC<Props> = ({
   const zoomOut = useCallback(() => {
     changeTimeRange(calculateZoomRange({ from: domainFrom, to: domainTo }, 1.5, baselineRangeRef.current));
   }, [changeTimeRange, domainFrom, domainTo]);
-  const zoomAll = useCallback(() => changeTimeRange(baselineRangeRef.current), [changeTimeRange]);
+  const zoomAll = useCallback(() => {
+    if (panelOnly) {
+      setLocalRange(undefined);
+    } else {
+      changeTimeRange(baselineRangeRef.current);
+    }
+  }, [changeTimeRange, panelOnly]);
 
   useEffect(() => {
-    const current = { from: domainFrom, to: domainTo };
+    const current = { from: dashboardFrom, to: dashboardTo };
     const requested = requestedRangeRef.current;
-    if (requested && requested.from === current.from && requested.to === current.to) {
+    if (!panelOnly && requested && requested.from === current.from && requested.to === current.to) {
       requestedRangeRef.current = undefined;
       return;
     }
     baselineRangeRef.current = current;
     requestedRangeRef.current = undefined;
-  }, [domainFrom, domainTo]);
+  }, [dashboardFrom, dashboardTo, panelOnly]);
 
   useEffect(() => {
     if (!interaction) {
@@ -606,7 +664,8 @@ export const TimeOverlayPanel: React.FC<Props> = ({
       } else if (current.kind === 'move-range') {
         const delta = clientXToTime(event.clientX) - current.pointerStart;
         const duration = current.to - current.from;
-        const from = clamp(current.from + delta, domainFrom, domainTo - duration);
+        const bounds = baselineRangeRef.current;
+        const from = clamp(current.from + delta, bounds.from, bounds.to - duration);
         commit({
           ranges: ranges.map((range) => (range.id === current.id ? { ...range, from, to: from + duration } : range)),
         });
@@ -710,13 +769,21 @@ export const TimeOverlayPanel: React.FC<Props> = ({
   };
 
   return (
-    <div ref={rootRef} className={styles.root} style={{ width, height }} data-testid="time-overlay-panel">
+    <div
+      ref={rootRef}
+      className={styles.root}
+      style={{ width, height }}
+      data-testid="time-overlay-panel"
+      data-zoom-mode={panelOnly ? 'panel' : 'dashboard'}
+      data-view-from={domainFrom}
+      data-view-to={domainTo}
+    >
       <div className={styles.chart}>
         <TimeSeries
           frames={displayFrames}
           width={width}
           height={height}
-          timeRange={timeRange}
+          timeRange={visibleTimeRange}
           timeZone={timeZone}
           legend={legend}
           options={options}
@@ -732,7 +799,13 @@ export const TimeOverlayPanel: React.FC<Props> = ({
                 mode={TooltipDisplayMode.Multi}
                 sortOrder={SortOrder.None}
               />
-              <PlotBridge config={config} rootRef={rootRef} onPlotRect={updatePlotRect} />
+              <PlotBridge
+                config={config}
+                rootRef={rootRef}
+                onPlotRect={updatePlotRect}
+                from={domainFrom}
+                to={domainTo}
+              />
             </>
           )}
         </TimeSeries>
@@ -745,6 +818,7 @@ export const TimeOverlayPanel: React.FC<Props> = ({
             className={cx(styles.toolButton, tool === 'zoom' && styles.activeTool)}
             onClick={() => setTool('zoom')}
             aria-label="Select an area to zoom"
+            title={panelOnly ? 'Zoom this panel only' : 'Zoom the entire dashboard'}
           >
             <Icon name="cursor-logo" size="sm" /> Select
           </button>
@@ -771,7 +845,7 @@ export const TimeOverlayPanel: React.FC<Props> = ({
             className={cx(styles.toolButton, styles.compactToolButton)}
             onClick={zoomAll}
             aria-label="Zoom all"
-            title="Restore the original time range"
+            title={panelOnly ? 'Reset to the dashboard time range' : 'Restore the original time range'}
           >
             <Icon name="expand-arrows-alt" size="sm" />
           </button>
@@ -816,6 +890,9 @@ export const TimeOverlayPanel: React.FC<Props> = ({
         }}
       >
         {visibleRanges.map((range) => {
+          if (range.to <= domainFrom || range.from >= domainTo) {
+            return null;
+          }
           const left = clamp(timeToRatio(range.from), 0, 1);
           const right = clamp(timeToRatio(range.to), 0, 1);
           const center = ((left + right) / 2) * 100;
