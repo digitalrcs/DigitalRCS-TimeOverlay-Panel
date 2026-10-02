@@ -1,5 +1,17 @@
 # DigitalRCS-TimeOverlay-Panel
 
+
+## Independent zoom (1.2.0)
+
+In the panel editor, set **Zoom behavior**:
+
+- **This panel only** (default): drag to zoom or use the zoom buttons without changing the dashboard time picker or other panels. Zoom out is capped at the dashboard range; **Zoom all** resets to that range.
+- **Entire dashboard**: retains the previous behavior, changing Grafana's shared time range and refreshing the affected panels.
+
+Panel-only zoom uses data already loaded; it does not request finer-resolution samples. The viewport is temporary and resets when the dashboard time range changes, including a moving relative range on refresh, when the mode changes, or when the panel reloads. A panel time override, if configured, supplies the reset bounds for that panel. Existing saved panels without a zoom setting now use panel-only zoom; select Entire dashboard to retain the old behavior.
+
+Range overlays keep their timestamps and durations while the visible portion is clipped to the zoomed window. Notes retain their position within the panel. Save the dashboard to persist the zoom behavior setting and overlays; the temporary zoom window is not saved or included in a separately rendered report.
+
 Measure time spans and keep the explanation right on your graph. DigitalRCS-TimeOverlay-Panel combines a time-series visualization with multiple highlighted ranges and visible, editable notes.
 
 Select a range to display its elapsed time, then repeat to mark additional intervals on the same graph. Add notes to explain what happened, move and resize them as needed, and save the dashboard to keep your ranges and notes for the next visit.

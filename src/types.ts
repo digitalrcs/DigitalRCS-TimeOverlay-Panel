@@ -17,6 +17,7 @@ export interface NoteOverlay {
 }
 
 export interface TimeOverlayOptions {
+  zoomMode?: 'panel' | 'dashboard';
   ranges: TimeRangeOverlay[];
   notes: NoteOverlay[];
   rangeColor: string;

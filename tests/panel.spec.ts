@@ -21,13 +21,14 @@ test('renders dynamically named CSV series and its legend', async ({
   await expect(panelEditPage.panel.locator).toContainText('UXVA01');
 });
 
-test('draws a persistent duration overlay', async ({ gotoPanelEditPage, readProvisionedDashboard, page }) => {
+test('draws a persistent duration overlay', async ({ gotoDashboardPage, readProvisionedDashboard, page }) => {
   const dashboard = await readProvisionedDashboard({ fileName: 'dashboard.json' });
-  await gotoPanelEditPage({ dashboard, id: '1' });
+  await gotoDashboardPage({ uid: dashboard.uid });
+  const panel = page.getByTestId('time-overlay-panel').filter({ has: page.getByTestId('plot-area') }).first();
 
-  await page.getByRole('button', { name: 'Draw time range' }).click();
-  const plot = page.getByTestId('plot-area');
-  const ranges = page.getByTestId('time-range-overlay');
+  await panel.getByRole('button', { name: 'Draw time range' }).click();
+  const plot = panel.getByTestId('plot-area');
+  const ranges = panel.getByTestId('time-range-overlay');
   const initialRangeCount = await ranges.count();
   const bounds = await plot.boundingBox();
   if (!bounds) {
@@ -41,17 +42,34 @@ test('draws a persistent duration overlay', async ({ gotoPanelEditPage, readProv
   await expect(ranges).toHaveCount(initialRangeCount + 1);
 
   const range = ranges.last();
-  const duration = page.getByRole('textbox', { name: 'Range duration' }).last();
+  const duration = panel.getByRole('textbox', { name: 'Range duration' }).last();
   await expect(range).toBeVisible();
   await expect(duration).not.toHaveValue('');
   const initialBounds = await range.boundingBox();
-  await duration.fill('1d 2h 30m');
+  // A real click catches inputs that inherit pointer-events: none from the plot.
+  await panel.getByRole('button', { name: 'Select an area to zoom' }).click();
+  await duration.click();
+  await expect(duration).toBeFocused();
+  await duration.press('ControlOrMeta+A');
+  await duration.pressSequentially('1d 2h 30m');
   await duration.press('Enter');
   await expect(duration).toHaveValue('1d 2h 30m');
   const resizedBounds = await range.boundingBox();
   expect(initialBounds).not.toBeNull();
   expect(resizedBounds).not.toBeNull();
   expect(resizedBounds!.width).toBeLessThan(initialBounds!.width);
+
+  await panel.getByRole('button', { name: 'Draw time range' }).click();
+  await duration.click();
+  await expect(duration).toBeFocused();
+  await duration.press('ControlOrMeta+A');
+  await duration.pressSequentially('12h');
+  await duration.press('Tab');
+  await expect(duration).toHaveValue('12h 0m 0s');
+  const smallerBounds = await range.boundingBox();
+  expect(smallerBounds).not.toBeNull();
+  expect(smallerBounds!.width).toBeLessThan(resizedBounds!.width);
+  await expect(ranges).toHaveCount(initialRangeCount + 1);
 });
 
 test('adds and edits a note overlay', async ({ gotoPanelEditPage, readProvisionedDashboard, page }) => {
